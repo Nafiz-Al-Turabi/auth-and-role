@@ -6,7 +6,7 @@ import type { NextRequest } from "next/server";
 const ADMIN_ROUTES = ["/dashboard"];
 
 // 2. Protected user routes (require login: any authenticated user/admin)
-const PROTECTED_ROUTES = ["/profile", "/orders", "/settings"];
+const PROTECTED_ROUTES = ["/user-dashboard", "/profile", "/orders", "/settings"];
 
 // 3. Auth routes that logged-in users should not visit
 const AUTH_ROUTES = ["/auth"];
