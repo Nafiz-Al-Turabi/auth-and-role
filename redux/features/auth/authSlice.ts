@@ -1,4 +1,5 @@
 import { createSlice, PayloadAction } from "@reduxjs/toolkit";
+import { tokenStorage } from "@/lib/auth/tokenStorage";
 
 interface AuthState {
   accessToken: string | null;
@@ -6,11 +7,27 @@ interface AuthState {
   isAuthenticated: boolean;
 }
 
-const initialState: AuthState = {
-  accessToken: null,
-  role: null,
-  isAuthenticated: false,
+const getInitialState = (): AuthState => {
+  if (typeof window === "undefined") {
+    return {
+      accessToken: null,
+      role: null,
+      isAuthenticated: false,
+    };
+  }
+
+  const accessToken = tokenStorage.getAccessToken();
+  const role = tokenStorage.getRole();
+  const refreshToken = tokenStorage.getRefreshToken();
+
+  return {
+    accessToken,
+    role,
+    isAuthenticated: Boolean(accessToken || refreshToken),
+  };
 };
+
+const initialState: AuthState = getInitialState();
 
 const authSlice = createSlice({
   name: "auth",
@@ -39,6 +56,7 @@ const authSlice = createSlice({
       state.accessToken = null;
       state.role = null;
       state.isAuthenticated = false;
+      tokenStorage.clearAll();
     },
   },
 });

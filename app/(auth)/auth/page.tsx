@@ -2,12 +2,12 @@
 
 import { tokenStorage } from "@/lib/auth/tokenStorage";
 import { useLoginMutation } from "@/redux/features/auth/authApi";
-import React, { useState } from "react";
+import React, { Suspense, useState } from "react";
 import { useAppDispatch } from "@/redux/hooks";
 import { setCredentials } from "@/redux/features/auth/authSlice";
 import { useRouter, useSearchParams } from "next/navigation";
 
-export default function AuthPage() {
+function AuthForm() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const [isLogin, setIsLogin] = useState(true);
@@ -52,14 +52,17 @@ export default function AuthPage() {
         }),
       );
 
-      // Redirect destination
-      const redirectDestination = searchParams.get("redirect");
-      if (redirectDestination) {
+      // Redirect destination (prevent Open Redirect vulnerability)
+      const rawRedirect = searchParams.get("redirect");
+      const isSafeRedirect =
+        rawRedirect && rawRedirect.startsWith("/") && !rawRedirect.startsWith("//");
+
+      if (isSafeRedirect) {
         // If regular user was attempting admin area, prevent redirecting back to forbidden admin page
-        if (redirectDestination.startsWith("/dashboard") && role !== "admin") {
+        if (rawRedirect.startsWith("/dashboard") && role !== "admin") {
           router.push("/");
         } else {
-          router.push(redirectDestination);
+          router.push(rawRedirect);
         }
       } else if (role === "admin") {
         router.push("/dashboard");
@@ -222,3 +225,18 @@ export default function AuthPage() {
     </div>
   );
 }
+
+export default function AuthPage() {
+  return (
+    <Suspense
+      fallback={
+        <div className="min-h-screen bg-slate-950 flex items-center justify-center text-slate-400">
+          Loading...
+        </div>
+      }
+    >
+      <AuthForm />
+    </Suspense>
+  );
+}
+
