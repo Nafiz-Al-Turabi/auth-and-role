@@ -77,8 +77,9 @@ export const baseQueryWithReauth: BaseQueryFn<
 
       const newRefreshToken = data.authorization.refresh_token;
 
-      // Save NEW refresh token
+      // Save NEW refresh token and access token
       tokenStorage.setRefreshToken(newRefreshToken);
+      tokenStorage.setAccessToken(newAccessToken);
 
       // Save NEW access token in Redux
       api.dispatch(updateAccessToken(newAccessToken));
@@ -87,7 +88,7 @@ export const baseQueryWithReauth: BaseQueryFn<
       result = await baseQuery(args, api, extraOptions);
     } else {
       // Refresh token invalid/expired
-      tokenStorage.removeRefreshToken();
+      tokenStorage.clearAll();
 
       api.dispatch(logout());
     }

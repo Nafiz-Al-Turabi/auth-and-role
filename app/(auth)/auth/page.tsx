@@ -5,10 +5,11 @@ import { useLoginMutation } from "@/redux/features/auth/authApi";
 import React, { useState } from "react";
 import { useAppDispatch } from "@/redux/hooks";
 import { setCredentials } from "@/redux/features/auth/authSlice";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 
 export default function AuthPage() {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const [isLogin, setIsLogin] = useState(true);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
@@ -38,8 +39,10 @@ export default function AuthPage() {
       const refreshToken = response.authorization.refresh_token;
       const role = response.role;
 
-      // Refresh token persist
+      // Persist tokens and role
       tokenStorage.setRefreshToken(refreshToken);
+      tokenStorage.setAccessToken(accessToken);
+      tokenStorage.setRole(role);
 
       // Access token Redux memory
       dispatch(
@@ -49,8 +52,16 @@ export default function AuthPage() {
         }),
       );
 
-      // Redirect based on role
-      if (role === "admin") {
+      // Redirect destination
+      const redirectDestination = searchParams.get("redirect");
+      if (redirectDestination) {
+        // If regular user was attempting admin area, prevent redirecting back to forbidden admin page
+        if (redirectDestination.startsWith("/dashboard") && role !== "admin") {
+          router.push("/");
+        } else {
+          router.push(redirectDestination);
+        }
+      } else if (role === "admin") {
         router.push("/dashboard");
       } else {
         router.push("/");
