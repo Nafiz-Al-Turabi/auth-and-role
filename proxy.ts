@@ -41,11 +41,13 @@ export function proxy(request: NextRequest) {
     return NextResponse.redirect(new URL(redirectUrl, request.url));
   }
 
+  const fullPath = `${pathname}${request.nextUrl.search}`;
+
   // If trying to access admin route:
   if (isAdminRoute) {
     if (!isAuthenticated) {
       const loginUrl = new URL("/auth", request.url);
-      loginUrl.searchParams.set("redirect", pathname);
+      loginUrl.searchParams.set("redirect", fullPath);
       return NextResponse.redirect(loginUrl);
     }
 
@@ -59,7 +61,7 @@ export function proxy(request: NextRequest) {
   if (isProtectedRoute) {
     if (!isAuthenticated) {
       const loginUrl = new URL("/auth", request.url);
-      loginUrl.searchParams.set("redirect", pathname);
+      loginUrl.searchParams.set("redirect", fullPath);
       return NextResponse.redirect(loginUrl);
     }
   }
